@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Load data from an external GeoJSON file</title>
+    <title>Where I have lived</title>
     <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
     <link href="https://api.mapbox.com/mapbox-gl-js/v2.5.0/mapbox-gl.css" rel="stylesheet">
     <script src="https://api.mapbox.com/mapbox-gl-js/v2.5.0/mapbox-gl.js"></script>
@@ -16,11 +16,11 @@
         #container {
             display: flex;
             height: 100vh;
-            flex-direction: row;
+            flex-direction: row-reverse;
             align-items: stretch;
         }
 
-        #table {
+        #side-panel {
             flex-basis: 500px;
             overflow-y: scroll;
         }
@@ -39,6 +39,10 @@
             border: 1px solid #ddd;
         }
 
+        @media screen and (max-width: 1024px) {
+            {display: none;}
+        }
+
         th,
         td {
             text-align: left;
@@ -55,15 +59,14 @@
     <main id="container">
         <div id="table">
 
-            <h2>Earthquake List</h2>
-            <button onclick="sortTable()">Sort by Magnitude</button>
+            <h2>Where I have lived</h2>
+            <button onclick="sortTable()">Sort by sig cd</button>
             
 
             <table>
                 <tr>
-                    <th>id</th>
-                    <th>magnitude</th>
-                    <th>timestamp</th>
+                    <th>SIG_ENG_NM</th>
+                    <th>SIG_CD</th>
                 </tr>
             </table>
 
@@ -73,92 +76,90 @@
     </main>
     <script>
         mapboxgl.accessToken =
-            'pk.eyJ1IjoiamFrb2J6aGFvIiwiYSI6ImNpcms2YWsyMzAwMmtmbG5icTFxZ3ZkdncifQ.P9MBej1xacybKcDN_jehvw';
+            'pk.eyJ1IjoiZGxkbDE5MDFzIiwiYSI6ImNrdmlwZTUybzVjYWcycG1zNjB0MDFpY2wifQ.0xFY-vxPsNVsZ5rs6fwwGQ';
         const map = new mapboxgl.Map({
             container: 'map', // container ID
-            style: 'mapbox://styles/mapbox/satellite-v9', // style URL
+            style: 'mapbox://styles/dldl1901s/ckviqorshhqfi15r0568n7kxg', // style URL
             zoom: 5.5, // starting zoom
-            center: [138.043, 38] // starting center
+            center: [127.8355, 36] // starting center
         });
 
 
         async function geojsonFetch() {
 
 
-            let response = await fetch('assets/earthquakes.geojson');
+            let response = await fetch('assets/lived.geojson');
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            let earthquakes = await response.json();
+            let lived = await response.json();
 
 
-            response = await fetch('assets/japan.json');
+            response = await fetch('assets/k_map.geojson');
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            let japan = await response.json();
+            let korea = await response.json();
 
 
             var table = document.getElementsByTagName("table");
-            for (let i = 0; i < earthquakes.features.length; i++) {
+            for (let i = 0; i < lived.features.length; i++) {
                 // console.log(earthquakes.features[i].properties.id);
 
-                var lng = await earthquakes.features[i].geometry.coordinates[0];
-                var lat = await earthquakes.features[i].geometry.coordinates[1];
+                var lng = await lived.features[i].geometry.coordinates[0];
+                var lat = await lived.features[i].geometry.coordinates[1];
 
                 // Create an empty <tr> element and add it to the 1st position of the table:
                 var row = table[0].insertRow(-1);
 
                 var cell1 = row.insertCell(0);
                 var cell2 = row.insertCell(1);
-                var cell3 = row.insertCell(2);
-                cell1.innerHTML = await earthquakes.features[i].properties.id;
-                cell2.innerHTML = await earthquakes.features[i].properties.mag;
-                cell3.innerHTML = await new Date(earthquakes.features[i].properties.time).toLocaleDateString("en-US");
+                cell1.innerHTML = await lived.features[i].properties.name;
+                cell2.innerHTML = await lived.features[i].properties.num;
 
             }
 
 
 
 
-            map.on('load', () => {
+            map.on('load', function loadingData() {
 
 
 
-                map.addSource('earthquakes', {
+                map.addSource('lived', {
                     type: 'geojson',
-                    data: earthquakes
+                    data: lived
                 });
 
                 map.addLayer({
-                    'id': 'earthquakes-layer',
+                    'id': 'lived-layer',
                     'type': 'circle',
-                    'source': 'earthquakes',
+                    'source': 'lived',
                     'paint': {
-                        'circle-radius': 8,
-                        'circle-stroke-width': 2,
-                        'circle-color': 'red',
+                        'circle-radius': 7,
+                        'circle-stroke-width': 3,
+                        'circle-color': 'blue',
                         'circle-stroke-color': 'white'
                     }
                 });
 
 
-                map.addSource('japan', {
+                map.addSource('korea', {
                     type: 'geojson',
-                    data: japan
+                    data: korea
                 });
 
                 map.addLayer({
-                    'id': 'japan-layer',
+                    'id': 'korea-layer',
                     'type': 'fill',
-                    'source': 'japan',
+                    'source': 'korea',
                     'paint': {
-                        'fill-color': '#0080ff', // blue color fill
-                        'fill-opacity': 0.5
+                        'fill-color': '#8B039A',
+                        'fill-opacity': 0.2
                     }
                 });
 
